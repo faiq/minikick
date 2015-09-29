@@ -25,7 +25,7 @@ func NewProject(projectName string, targetAmount string) (Project, error) {
 	if newTarg < 0 {
 		return Project{}, errors.New("Looks like you entered a negative backing amount")
 	}
-	if validateName(projectName) {
+	if ValidateName(projectName) {
 		p := Project{Name: projectName, TargetAmount: newTarg}
 		return p, nil
 	} else {
@@ -49,8 +49,8 @@ func (p Project) Save() error {
 	return nil
 }
 
-// validateName is an internal function that checks to see if a given
-func validateName(projectName string) bool {
+// validateName is a function that checks to see if a given name is of appropriate len
+func ValidateName(projectName string) bool {
 	strlen := utf8.RuneCountInString(projectName)
 	if strlen > 20 || strlen < 4 {
 		return false
