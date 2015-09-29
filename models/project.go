@@ -70,7 +70,7 @@ func (p Project) UpdateCard(newCard []int, backingAmount float64) error {
 	newAmount := backingAmount + p.AmountBacked
 	newCards := append(p.Cards, newCard)
 	change := bson.M{"cards": newCards, "amountBacked": newAmount, "targetAmount": p.TargetAmount, "name": p.Name}
-	err := c.Update(p, change)
+	err = c.Update(p, change)
 	if err != nil {
 		return err
 	}

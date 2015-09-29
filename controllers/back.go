@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"github.com/faiq/minikick/models"
+	"log"
 	"strconv"
 )
 
@@ -36,6 +37,7 @@ func Back(givenName string, projectName string, card string, amount string) erro
 	if err != nil {
 		return err
 	}
+	log.Printf("%v", User)
 	err = User.SaveBacking(result.Id)
 	if err != nil {
 		return err
