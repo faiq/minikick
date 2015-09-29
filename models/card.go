@@ -9,7 +9,7 @@ func ParseCard(card string) []int {
 	arrlen := utf8.RuneCountInString(card)
 	ret := make([]int, arrlen)
 	for i, dig := range card {
-		ret[i] = dig
+		ret[i] = int(dig) - '0'
 	}
 	return ret
 }
