@@ -1,8 +1,18 @@
 package models
 
 import (
-	"math"
+	"unicode/utf8"
 )
+
+//Parse card takes a card string and returns an int array we can run LuhnCheck on
+func ParseCard(card string) []int {
+	arrlen := utf8.RuneCountInString(card)
+	ret := make([]int, arrlen)
+	for i, dig := range card {
+		ret[i] = dig
+	}
+	return ret
+}
 
 //Luhn Check tells us if a card complies to Luhn 10 or Not
 func LuhnCheck(card []int) bool {
