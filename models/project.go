@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"log"
 	"strconv"
 	"unicode/utf8"
 )
@@ -13,7 +14,8 @@ type Project struct {
 	Name         string        `bson:"name"`         //Name of Project
 	TargetAmount float64       `bson:"targetAmount"` //What the target amount of the project will be
 	Backers      []string      `bson:"backers"`      //List of names the have backed this project
-	cards        [][]int       `bson:"cards"`        //A private list of cards to check if a card already exists for this
+	Cards        [][]int       `bson:"cards"`        //A private list of cards to check if a card already exists for this
+	AmountBacked float64       `bson:"amountBacked"`
 }
 
 // A constructor returns a new project
@@ -59,18 +61,15 @@ func validateName(projectName string) bool {
 }
 
 //Takes in a new card and backer, and updates mongo
-func (p Project) UpdateCard(mongoSession *mgo.Session, newCard []int, backer string) error {
+func (p Project) UpdateCard(mongoSession *mgo.Session, newCard []int, backer string, backingAmount float64) error {
 	sessCopy := mongoSession.Copy()
 	defer sessCopy.Close()
 	c := sessCopy.DB("minikick").C("projects")
-	change := bson.M{"$push": bson.M{"cards": newCard}}
+	newAmount := backingAmount + p.AmountBacked
+	newCards := append(p.Cards, newCard)
+	newBackers := append(p.Backers, backer)
+	change := bson.M{"cards": newCards, "backers": newBackers, "amountBacked": newAmount, "targetAmount": p.TargetAmount, "name": p.Name}
 	err := c.Update(p, change)
-	if err != nil {
-		return err
-	}
-
-	change = bson.M{"$push": bson.M{"backers": backer}}
-	err = c.Update(p, change)
 	if err != nil {
 		return err
 	}
@@ -78,7 +77,7 @@ func (p Project) UpdateCard(mongoSession *mgo.Session, newCard []int, backer str
 }
 
 func (p Project) HasCard(check []int) bool {
-	for _, card := range p.cards {
+	for _, card := range p.Cards {
 		if compareCards(card, check) {
 			return true
 		}
@@ -125,10 +124,11 @@ func Back(givenName string, projectName string, card string, amount string) erro
 	if err != nil {
 		return err
 	}
+	log.Printf("%v\n", result)
 	if result.HasCard(cardArr) {
 		return errors.New("Looks like this card is already being used")
 	}
-	err = result.UpdateCard(sess, cardArr, givenName)
+	err = result.UpdateCard(sess, cardArr, givenName, backAmount)
 	if err != nil {
 		return err
 	}
