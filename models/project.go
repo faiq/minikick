@@ -19,14 +19,17 @@ type Project struct {
 // A constructor returns a new project
 func NewProject(projectName string, targetAmount string) (Project, error) {
 	newTarg, err := strconv.ParseFloat(targetAmount, 64)
+	if err != nil {
+		return Project{}, err
+	}
 	if newTarg < 0 {
-		return nil, errors.New("Looks like you entered a negative backing amount")
+		return Project{}, errors.New("Looks like you entered a negative backing amount")
 	}
 	if validateName(projectName) {
-		p := Project{Name: projectName, TargetAmount: targetAmount}
+		p := Project{Name: projectName, TargetAmount: newTarg}
 		return p, nil
 	} else {
-		return nil, errors.New("Projects should be no shorter than 4 characters but no longer than 20 characters")
+		return Project{}, errors.New("Projects should be no shorter than 4 characters but no longer than 20 characters")
 	}
 }
 
@@ -38,11 +41,12 @@ func (p Project) Save() error {
 		return err
 	}
 	c := sess.DB("minikick").C("projects")
-	p.ID = bson.NewObjectId()
+	p.Id = bson.NewObjectId()
 	err = c.Insert(p)
 	if err != nil {
 		return err
 	}
+	return nil
 }
 
 // validateName is an internal function that checks to see if a given
@@ -56,10 +60,11 @@ func validateName(projectName string) bool {
 
 //Takes in a new card and backer, and updates mongo
 func (p Project) UpdateCard(mongoSession *mgo.Session, newCard []int, backer string) error {
-	c := mongoSession.Copy()
-	defer c.Close()
+	sessCopy := mongoSession.Copy()
+	defer sessCopy.Close()
+	c := sessCopy.DB("minikick").C("projects")
 	change := bson.M{"$push": bson.M{"cards": newCard}}
-	err = c.Update(p.Id, change)
+	err := c.Update(p.Id, change)
 	if err != nil {
 		return err
 	}
@@ -69,6 +74,7 @@ func (p Project) UpdateCard(mongoSession *mgo.Session, newCard []int, backer str
 	if err != nil {
 		return err
 	}
+	return nil
 }
 
 func (p Project) HasCard(check []int) bool {
@@ -110,9 +116,8 @@ func Back(givenName string, projectName string, card string, amount float64) err
 		return err
 	}
 	c := sess.DB("minikick").C("projects")
-	defer c.Close()
 	var result Project
-	err := collection.Find(bson.M{"name": projectName}).One(&result)
+	err = c.Find(bson.M{"name": projectName}).One(&result)
 	if err == mgo.ErrNotFound {
 		return errors.New("Looks like you're trying to back something that doesnt exist")
 	}
@@ -122,7 +127,7 @@ func Back(givenName string, projectName string, card string, amount float64) err
 	if result.HasCard(cardArr) {
 		return errors.New("Looks like this card is already being used")
 	}
-	err := result.UpdateCard(c, cardArr, givenName)
+	err = result.UpdateCard(sess, cardArr, givenName)
 	if err != nil {
 		return err
 	}
