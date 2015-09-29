@@ -64,13 +64,13 @@ func (p Project) UpdateCard(mongoSession *mgo.Session, newCard []int, backer str
 	defer sessCopy.Close()
 	c := sessCopy.DB("minikick").C("projects")
 	change := bson.M{"$push": bson.M{"cards": newCard}}
-	err := c.Update(p.Id, change)
+	err := c.Update(p, change)
 	if err != nil {
 		return err
 	}
 
-	change = bson.M{"$push": bson.M{"backer": backer}}
-	err = c.Update(p.Id, change)
+	change = bson.M{"$push": bson.M{"backers": backer}}
+	err = c.Update(p, change)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func compareCards(card1 []int, card2 []int) bool {
 	return true
 }
 
-func Back(givenName string, projectName string, card string, amount float64) error {
+func Back(givenName string, projectName string, card string, amount string) error {
 	if !validateName(givenName) {
 		return errors.New("Given name should be no shorter than 4 chars and no longer than 20")
 	}
@@ -106,7 +106,8 @@ func Back(givenName string, projectName string, card string, amount float64) err
 	if !LuhnCheck(cardArr) {
 		return errors.New("Looks like this card is invalid")
 	}
-	if amount < 0 {
+	backAmount, err := strconv.ParseFloat(amount, 64)
+	if backAmount < 0 {
 		return errors.New("you entered a negative amount!")
 	}
 	uri := "mongodb://localhost/"

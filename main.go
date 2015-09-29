@@ -34,7 +34,10 @@ func main() {
 			Usage:   "Back a project! The arguments are name, project name, credit card number, and an amount.",
 			Action: func(c *cli.Context) {
 				args := c.Args()
-				fmt.Println(args[0], args[1], args[2], args[3])
+				err := models.Back(args[0], args[1], args[2], args[3])
+				if err != nil {
+					fmt.Printf("%v", err)
+				}
 			},
 		},
 		{
