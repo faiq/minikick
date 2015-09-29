@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/faiq/minikick/models"
 )
 
 func main() {
@@ -16,7 +17,15 @@ func main() {
 			Usage:   "Create a new project! Just pass in a project name and target amount. (Dont use $ for the amount)",
 			Action: func(c *cli.Context) {
 				args := c.Args()
-				fmt.Println(args[0], args[1])
+				proj, err := models.NewProject(args[0], args[1])
+				if err != nil {
+					panic(err)
+				}
+				err = proj.Save()
+				if err != nil {
+					panic(err)
+				}
+				fmt.Printf("We saved your project %s for %s", args[0], args[1])
 			},
 		},
 		{

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"strconv"
 	"unicode/utf8"
 )
 
@@ -15,12 +16,32 @@ type Project struct {
 	cards        [][]int       `bson:"cards"`        //A private list of cards to check if a card already exists for this
 }
 
-func NewProject(projectName string, targetAmount int) (*Project, error) {
+// A constructor returns a new project
+func NewProject(projectName string, targetAmount string) (Project, error) {
+	newTarg, err := strconv.ParseFloat(targetAmount, 64)
+	if newTarg < 0 {
+		return nil, errors.New("Looks like you entered a negative backing amount")
+	}
 	if validateName(projectName) {
-		p := Project{projectName, targetAmount}
-		return &p, nil
+		p := Project{Name: projectName, TargetAmount: targetAmount}
+		return p, nil
 	} else {
 		return nil, errors.New("Projects should be no shorter than 4 characters but no longer than 20 characters")
+	}
+}
+
+func (p Project) Save() error {
+	uri := "mongodb://localhost/"
+	sess, err := mgo.Dial(uri)
+	defer sess.Close()
+	if err != nil {
+		return err
+	}
+	c := sess.DB("minikick").C("projects")
+	p.ID = bson.NewObjectId()
+	err = c.Insert(p)
+	if err != nil {
+		return err
 	}
 }
 
@@ -33,9 +54,17 @@ func validateName(projectName string) bool {
 	return true
 }
 
-//Takes in a new card and updates mongo
-func (p Project) UpdateCard(newCard []int) error {
+//Takes in a new card and backer, and updates mongo
+func (p Project) UpdateCard(mongoSession *mgo.Session, newCard []int, backer string) error {
+	c := mongoSession.Copy()
+	defer c.Close()
 	change := bson.M{"$push": bson.M{"cards": newCard}}
+	err = c.Update(p.Id, change)
+	if err != nil {
+		return err
+	}
+
+	change = bson.M{"$push": bson.M{"backer": backer}}
 	err = c.Update(p.Id, change)
 	if err != nil {
 		return err
@@ -81,6 +110,7 @@ func Back(givenName string, projectName string, card string, amount float64) err
 		return err
 	}
 	c := sess.DB("minikick").C("projects")
+	defer c.Close()
 	var result Project
 	err := collection.Find(bson.M{"name": projectName}).One(&result)
 	if err == mgo.ErrNotFound {
@@ -92,7 +122,7 @@ func Back(givenName string, projectName string, card string, amount float64) err
 	if result.HasCard(cardArr) {
 		return errors.New("Looks like this card is already being used")
 	}
-	err := result.UpdateCard(cardArr)
+	err := result.UpdateCard(c, cardArr, givenName)
 	if err != nil {
 		return err
 	}
