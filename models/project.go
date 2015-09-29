@@ -4,7 +4,6 @@ import (
 	"errors"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"log"
 	"strconv"
 	"unicode/utf8"
 )
@@ -124,7 +123,6 @@ func Back(givenName string, projectName string, card string, amount string) erro
 	if err != nil {
 		return err
 	}
-	log.Printf("%v\n", result)
 	if result.HasCard(cardArr) {
 		return errors.New("Looks like this card is already being used")
 	}

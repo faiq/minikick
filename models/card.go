@@ -21,7 +21,7 @@ func LuhnCheck(card []int) bool {
 	}
 	cardLen := len(card)
 	check := 0
-	for i := cardLen - 1; i <= 0; i-- {
+	for i := cardLen - 1; i >= 0; i-- {
 		var dig int
 		if i%2 == 0 {
 			dig = card[i] * 2
