@@ -59,10 +59,14 @@ func ValidateName(projectName string) bool {
 }
 
 //Takes in a new card and backer, and updates mongo
-func (p Project) UpdateCard(mongoSession *mgo.Session, newCard []int, backingAmount float64) error {
-	sessCopy := mongoSession.Copy()
-	defer sessCopy.Close()
-	c := sessCopy.DB("minikick").C("projects")
+func (p Project) UpdateCard(newCard []int, backingAmount float64) error {
+	uri := "mongodb://localhost/"
+	sess, err := mgo.Dial(uri)
+	defer sess.Close()
+	if err != nil {
+		return err
+	}
+	c := sess.DB("minikick").C("projects")
 	newAmount := backingAmount + p.AmountBacked
 	newCards := append(p.Cards, newCard)
 	change := bson.M{"cards": newCards, "amountBacked": newAmount, "targetAmount": p.TargetAmount, "name": p.Name}
@@ -92,4 +96,20 @@ func compareCards(card1 []int, card2 []int) bool {
 		}
 	}
 	return true
+}
+
+func FindProjectByName(projectName string) (Project, error) {
+	uri := "mongodb://localhost/"
+	sess, err := mgo.Dial(uri)
+	defer sess.Close()
+	if err != nil {
+		return Project{}, err
+	}
+	c := sess.DB("minikick").C("projects")
+	var result Project
+	err = c.Find(bson.M{"name": projectName}).One(&result)
+	if err == mgo.ErrNotFound {
+		return Project{}, errors.New("Looks like you're trying to back something that doesnt exist")
+	}
+	return result, nil
 }
