@@ -41,8 +41,10 @@ func (p Project) Save() error {
 		return err
 	}
 	c := sess.DB("minikick").C("projects")
-	p.Id = bson.NewObjectId()
-	err = c.Insert(p)
+	if len(p.Id) == 0 {
+		p.Id = bson.NewObjectId()
+	}
+	_, err = c.Upsert(bson.M{"_id": p.Id}, p)
 	if err != nil {
 		return err
 	}
@@ -59,22 +61,9 @@ func ValidateName(projectName string) bool {
 }
 
 //Takes in a new card and backer, and updates mongo
-func (p Project) UpdateCard(newCard []int, backingAmount float64) error {
-	uri := "mongodb://localhost/"
-	sess, err := mgo.Dial(uri)
-	defer sess.Close()
-	if err != nil {
-		return err
-	}
-	c := sess.DB("minikick").C("projects")
-	newAmount := backingAmount + p.AmountBacked
-	newCards := append(p.Cards, newCard)
-	change := bson.M{"cards": newCards, "amountBacked": newAmount, "targetAmount": p.TargetAmount, "name": p.Name}
-	err = c.Update(p, change)
-	if err != nil {
-		return err
-	}
-	return nil
+func (p *Project) UpdateCard(newCard []int, backingAmount float64) {
+	p.AmountBacked = backingAmount + p.AmountBacked
+	p.Cards = append(p.Cards, newCard)
 }
 
 func (p Project) HasCard(check []int) bool {

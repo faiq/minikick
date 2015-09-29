@@ -29,16 +29,21 @@ func Back(givenName string, projectName string, card string, amount string) erro
 	if result.HasCard(cardArr) {
 		return errors.New("Looks like this card is already being used")
 	}
-	err = result.UpdateCard(cardArr, backAmount)
+	result.UpdateCard(cardArr, backAmount)
 	if err != nil {
 		return err
 	}
 	User, err := models.FindUserByName(givenName)
 	if err != nil {
+		log.Printf("here!")
 		return err
 	}
-	log.Printf("%v", User)
-	err = User.SaveBacking(result.Id)
+	err = User.AddBacking(result.Id)
+	err = User.Save()
+	if err != nil {
+		return err
+	}
+	err = result.Save()
 	if err != nil {
 		return err
 	}

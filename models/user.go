@@ -17,12 +17,12 @@ func NewUser(name string) User {
 }
 
 // Find a User By that name or create a new User if its not found
-func FindUserByName(name string) (User, error) {
+func FindUserByName(name string) (*User, error) {
 	uri := "mongodb://localhost/"
 	sess, err := mgo.Dial(uri)
 	defer sess.Close()
 	if err != nil {
-		return User{}, err
+		return &User{}, err
 	}
 	c := sess.DB("minikick").C("users")
 	var result User
@@ -31,27 +31,16 @@ func FindUserByName(name string) (User, error) {
 		//Make a New User
 		u := NewUser(name)
 		u.Id = bson.NewObjectId()
-		return u, nil
+		return &u, nil
 	}
-	return result, nil
+	return &result, nil
 }
 
-func (u User) SaveBacking(backedProject bson.ObjectId) error {
-	uri := "mongodb://localhost/"
-	sess, err := mgo.Dial(uri)
-	defer sess.Close()
-	if err != nil {
-		return err
-	}
-	c := sess.DB("minikick").C("users")
+func (u *User) AddBacking(backedProject bson.ObjectId) error {
 	if u.DidBack(backedProject) {
 		return errors.New("you already backed this project")
 	}
 	u.BackedProjects = append(u.BackedProjects, backedProject)
-	err = c.Insert(u)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -62,4 +51,22 @@ func (u User) DidBack(backedProject bson.ObjectId) bool {
 		}
 	}
 	return false
+}
+
+func (u *User) Save() error {
+	uri := "mongodb://localhost/"
+	sess, err := mgo.Dial(uri)
+	defer sess.Close()
+	if err != nil {
+		return err
+	}
+	c := sess.DB("minikick").C("projects")
+	if len(u.Id) == 0 {
+		u.Id = bson.NewObjectId()
+	}
+	_, err = c.Upsert(bson.M{"_id": u.Id}, u)
+	if err != nil {
+		return err
+	}
+	return nil
 }
