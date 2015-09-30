@@ -39,6 +39,7 @@ func main() {
 				if err != nil {
 					fmt.Printf("%v", err)
 				}
+				fmt.Printf("you just baked %s for %s. thank you!", args[1], args[3])
 			},
 		},
 		{

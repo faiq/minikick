@@ -7,9 +7,14 @@ import (
 )
 
 type User struct {
-	Id             bson.ObjectId   `bson:"_id,omitempty"`
-	Name           string          `bson:"name"` //Name of User
-	BackedProjects []bson.ObjectId `bson:"backedProjects"`
+	Id             bson.ObjectId `bson:"_id,omitempty"`
+	Name           string        `bson:"name"` //Name of User
+	BackedProjects []BackProject `bson:"backedProjects"`
+}
+
+type BackProject struct {
+	Project bson.ObjectId `bson:"project"`
+	Amount  float64       `bson:"amount"`
 }
 
 func NewUser(name string) User {
@@ -36,30 +41,21 @@ func FindUserByName(name string) (*User, error) {
 	return &result, nil
 }
 
-func (u *User) AddBacking(backedProject bson.ObjectId) error {
+func (u *User) AddBacking(backedProject bson.ObjectId, amount float64) error {
 	if u.DidBack(backedProject) {
 		return errors.New("you already backed this project")
 	}
-	u.BackedProjects = append(u.BackedProjects, backedProject)
+	u.BackedProjects = append(u.BackedProjects, BackProject{backedProject, amount})
 	return nil
 }
 
 func (u User) DidBack(backedProject bson.ObjectId) bool {
 	for _, backed := range u.BackedProjects {
-		if backed.Hex() == backedProject.Hex() {
+		if backed.Project.Hex() == backedProject.Hex() {
 			return true
 		}
 	}
 	return false
-}
-
-func equalIds(id1 []byte, id2 []byte) bool {
-	for i, bite := range id1 {
-		if bite != id2[i] {
-			return false
-		}
-	}
-	return true
 }
 
 func (u *User) Save() error {

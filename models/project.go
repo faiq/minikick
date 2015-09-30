@@ -102,3 +102,19 @@ func FindProjectByName(projectName string) (Project, error) {
 	}
 	return result, nil
 }
+
+func FindProjectById(objID bson.ObjectId) (Project, error) {
+	uri := "mongodb://localhost/"
+	sess, err := mgo.Dial(uri)
+	defer sess.Close()
+	if err != nil {
+		return Project{}, err
+	}
+	c := sess.DB("minikick").C("projects")
+	var result Project
+	err = c.Find(bson.M{"_id": objId}).One(&result)
+	if err == mgo.ErrNotFound {
+		return Project{}, errors.New("Looks like you're trying to find something that doesn't exist")
+	}
+	return result, nil
+}
