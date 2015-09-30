@@ -46,11 +46,20 @@ func (u *User) AddBacking(backedProject bson.ObjectId) error {
 
 func (u User) DidBack(backedProject bson.ObjectId) bool {
 	for _, backed := range u.BackedProjects {
-		if backed == backedProject {
+		if backed.Hex() == backedProject.Hex() {
 			return true
 		}
 	}
 	return false
+}
+
+func equalIds(id1 []byte, id2 []byte) bool {
+	for i, bite := range id1 {
+		if bite != id2[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func (u *User) Save() error {
@@ -60,7 +69,7 @@ func (u *User) Save() error {
 	if err != nil {
 		return err
 	}
-	c := sess.DB("minikick").C("projects")
+	c := sess.DB("minikick").C("users")
 	if len(u.Id) == 0 {
 		u.Id = bson.NewObjectId()
 	}

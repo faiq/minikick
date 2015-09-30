@@ -39,6 +39,9 @@ func Back(givenName string, projectName string, card string, amount string) erro
 		return err
 	}
 	err = User.AddBacking(result.Id)
+	if err != nil {
+		return err
+	}
 	err = User.Save()
 	if err != nil {
 		return err
