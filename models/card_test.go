@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -12,7 +11,6 @@ func TestValidCards(t *testing.T) {
 	for _, cardString := range validCards {
 		card := ParseCard(cardString)
 		didPass := LuhnCheck(card)
-		fmt.Printf("%v %v \n", card, didPass)
 		assert.True(didPass, "These cards should be valid")
 	}
 }
