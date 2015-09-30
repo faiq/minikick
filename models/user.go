@@ -93,8 +93,9 @@ func FindUsersForProject(projectID bson.ObjectId) ([]User, error) {
 		return nil, err
 	}
 	c := sess.DB("minikick").C("users")
+	query := bson.M{"backedProjects": bson.M{"$elemMatch": bson.M{"project": projectID}}}
 	var result []User
-	iter := c.Find(bson.M{"$elemMatch": bson.M{"project": projectID}}).Iter()
+	iter := c.Find(query).Iter()
 	err = iter.All(&result)
 	if err != nil {
 		return nil, err

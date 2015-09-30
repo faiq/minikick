@@ -10,10 +10,12 @@ func List(name string) error {
 	if err != nil {
 		return err
 	}
+
 	users, err := models.FindUsersForProject(project.Id)
 	if err != nil {
 		return err
 	}
+
 	for _, user := range users {
 		fmt.Printf("%s backed %s for %f\n", user.Name, name, user.BackedProjects[user.BackIndex(project.Id)].Amount)
 	}
