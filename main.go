@@ -57,7 +57,7 @@ func main() {
 			Action: func(c *cli.Context) {
 				err := controllers.Backer(c.Args().First())
 				if err != nil {
-					fmt.Printf(err)
+					fmt.Printf("%v", err)
 				}
 			},
 		},

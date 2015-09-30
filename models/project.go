@@ -112,7 +112,7 @@ func FindProjectById(objID bson.ObjectId) (Project, error) {
 	}
 	c := sess.DB("minikick").C("projects")
 	var result Project
-	err = c.Find(bson.M{"_id": objId}).One(&result)
+	err = c.Find(bson.M{"_id": objID}).One(&result)
 	if err == mgo.ErrNotFound {
 		return Project{}, errors.New("Looks like you're trying to find something that doesn't exist")
 	}

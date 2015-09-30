@@ -1,12 +1,12 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/faiq/minikick/models"
-	"log"
 )
 
 func Backer(name string) error {
-	User, err := models.FindUserByName(givenName)
+	User, err := models.FindUserByName(name)
 	if err != nil {
 		return err
 	}
@@ -15,7 +15,7 @@ func Backer(name string) error {
 		if err != nil {
 			return err
 		}
-		log.Printf("backed %s for %d \n", p.Name, backed.Amount)
+		fmt.Printf("backed %s for %f \n", p.Name, backed.Amount)
 	}
 	return nil
 }
