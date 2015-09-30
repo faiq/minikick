@@ -55,7 +55,10 @@ func main() {
 			Aliases: []string{"br"},
 			Usage:   "Display a list of projects that a backer has backed and the amounts backed",
 			Action: func(c *cli.Context) {
-				fmt.Println(c.Args().First())
+				err := controllers.Backer(c.Args().First())
+				if err != nil {
+					fmt.Printf(err)
+				}
 			},
 		},
 	}
