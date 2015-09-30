@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/codegangsta/cli"
+	"github.com/faiq/minikick/Godeps/_workspace/src/github.com/codegangsta/cli"
 	"github.com/faiq/minikick/controllers"
 	"github.com/faiq/minikick/models"
 )
