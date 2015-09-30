@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/stretchr/testify/assert"
+	"strings"
 	"testing"
 )
 
@@ -12,5 +13,24 @@ func TestValidCards(t *testing.T) {
 		card := ParseCard(cardString)
 		didPass := LuhnCheck(card)
 		assert.True(didPass, "These cards should be valid")
+	}
+}
+
+func TestInvalidCards(t *testing.T) {
+	validCards := []string{"4581237932741116", "4539308000054485", "4916935677645261", "5119179016239088", "5234369535520247", "5194504885767109", "374109393413833", "346869191478065", "344969109447467", "6011548756068120", "6011605325693232", "6011705446691451", "3528919811136165", "3096160196489174", "3158928729839155", "5516347915139183", "5580179315691476", "5560004936434680", "30091628011796", "30382331682795", "30410005628040", "36006119350952", "36927319108736", "36343929113571", "6759738955053165", "5020357966199605", "6762849131732906", "6771964197519268", "6709712020516770", "6771229789480208", "4913995192979861", "4917492540807271", "4917325289733458", "6372141294374219", "6373095467755365", "6372223709107937"}
+	invalidate(validCards)
+	assert := assert.New(t)
+	for _, cardString := range validCards {
+		card := ParseCard(cardString)
+		didPass := LuhnCheck(card)
+		assert.Equal(didPass, false, "These cards should not be valid")
+	}
+}
+
+func invalidate(cards []string) {
+	for i, card := range cards {
+		//credit cards dont start with 9
+		card = strings.Replace(card, string(card[0]), "9", 1)
+		cards[i] = card
 	}
 }
