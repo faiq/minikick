@@ -58,6 +58,15 @@ func (u User) DidBack(backedProject bson.ObjectId) bool {
 	return false
 }
 
+func (u User) BackIndex(backedProject bson.ObjectId) int {
+	for i, backed := range u.BackedProjects {
+		if backed.Project.Hex() == backedProject.Hex() {
+			return i
+		}
+	}
+	return -1
+}
+
 func (u *User) Save() error {
 	uri := "mongodb://localhost/"
 	sess, err := mgo.Dial(uri)
@@ -74,4 +83,21 @@ func (u *User) Save() error {
 		return err
 	}
 	return nil
+}
+
+func FindUsersForProject(projectID bson.ObjectId) ([]User, error) {
+	uri := "mongodb://localhost/"
+	sess, err := mgo.Dial(uri)
+	defer sess.Close()
+	if err != nil {
+		return nil, err
+	}
+	c := sess.DB("minikick").C("users")
+	var result []User
+	iter := c.Find(bson.M{"$elemMatch": bson.M{"project": projectID}}).Iter()
+	err = iter.All(&result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }

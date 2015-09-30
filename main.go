@@ -38,8 +38,9 @@ func main() {
 				err := controllers.Back(args[0], args[1], args[2], args[3])
 				if err != nil {
 					fmt.Printf("%v", err)
+				} else {
+					fmt.Printf("you just backed %s for %s. thank you!", args[1], args[3])
 				}
-				fmt.Printf("you just baked %s for %s. thank you!", args[1], args[3])
 			},
 		},
 		{
@@ -47,7 +48,11 @@ func main() {
 			Aliases: []string{"l"},
 			Usage:   "Display a project the backers and the amount they backed for a project!",
 			Action: func(c *cli.Context) {
-				fmt.Println(c.Args().First())
+				args := c.Args()
+				err := controllers.List(args[0])
+				if err != nil {
+					fmt.Printf("%v", err)
+				}
 			},
 		},
 		{
