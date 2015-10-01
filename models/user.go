@@ -22,16 +22,10 @@ func NewUser(name string) User {
 }
 
 // Find a User By that name or create a new User if its not found
-func FindUserByName(name string) (*User, error) {
-	uri := "mongodb://localhost/"
-	sess, err := mgo.Dial(uri)
-	defer sess.Close()
-	if err != nil {
-		return &User{}, err
-	}
-	c := sess.DB("minikick").C("users")
+func FindUserByName(name string, db *mgo.Database) (*User, error) {
+	c := db.C("users")
 	var result User
-	err = c.Find(bson.M{"name": name}).One(&result)
+	err := c.Find(bson.M{"name": name}).One(&result)
 	if err == mgo.ErrNotFound {
 		//Make a New User
 		u := NewUser(name)
@@ -67,36 +61,24 @@ func (u User) BackIndex(backedProject bson.ObjectId) int {
 	return -1
 }
 
-func (u *User) Save() error {
-	uri := "mongodb://localhost/"
-	sess, err := mgo.Dial(uri)
-	defer sess.Close()
-	if err != nil {
-		return err
-	}
-	c := sess.DB("minikick").C("users")
+func (u *User) Save(db *mgo.Database) error {
+	c := db.C("users")
 	if len(u.Id) == 0 {
 		u.Id = bson.NewObjectId()
 	}
-	_, err = c.Upsert(bson.M{"_id": u.Id}, u)
+	_, err := c.Upsert(bson.M{"_id": u.Id}, u)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func FindUsersForProject(projectID bson.ObjectId) ([]User, error) {
-	uri := "mongodb://localhost/"
-	sess, err := mgo.Dial(uri)
-	defer sess.Close()
-	if err != nil {
-		return nil, err
-	}
-	c := sess.DB("minikick").C("users")
+func FindUsersForProject(projectID bson.ObjectId, db *mgo.Database) ([]User, error) {
+	c := db.C("users")
 	query := bson.M{"backedProjects": bson.M{"$elemMatch": bson.M{"project": projectID}}}
 	var result []User
 	iter := c.Find(query).Iter()
-	err = iter.All(&result)
+	err := iter.All(&result)
 	if err != nil {
 		return nil, err
 	}
