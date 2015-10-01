@@ -33,18 +33,12 @@ func NewProject(projectName string, targetAmount string) (Project, error) {
 	}
 }
 
-func (p Project) Save() error {
-	uri := "mongodb://localhost/"
-	sess, err := mgo.Dial(uri)
-	defer sess.Close()
-	if err != nil {
-		return err
-	}
-	c := sess.DB("minikick").C("projects")
+func (p Project) Save(db *mgo.Database) error {
+	c := db.C("projects")
 	if len(p.Id) == 0 {
 		p.Id = bson.NewObjectId()
 	}
-	_, err = c.Upsert(bson.M{"_id": p.Id}, p)
+	_, err := c.Upsert(bson.M{"_id": p.Id}, p)
 	if err != nil {
 		return err
 	}

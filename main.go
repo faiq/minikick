@@ -5,6 +5,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/faiq/minikick/controllers"
 	"github.com/faiq/minikick/models"
+	"gopkg.in/mgo.v2"
 )
 
 func main() {
@@ -19,10 +20,14 @@ func main() {
 			Action: func(c *cli.Context) {
 				args := c.Args()
 				proj, err := models.NewProject(args[0], args[1])
+				uri := "mongodb://localhost/"
+				sess, err := mgo.Dial(uri)
+				defer sess.Close()
 				if err != nil {
-					panic(err)
+					fmt.Printf("%v \n", err)
 				}
-				err = proj.Save()
+				db := sess.DB("minikick")
+				err = proj.Save(db)
 				if err != nil {
 					panic(err)
 				}

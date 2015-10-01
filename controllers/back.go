@@ -44,7 +44,7 @@ func Back(givenName string, projectName string, card string, amount string) erro
 	if err != nil {
 		return err
 	}
-	err = result.Save()
+	//	err = result.Save({}mgo.Database)
 	if err != nil {
 		return err
 	}
