@@ -3,15 +3,16 @@ package controllers
 import (
 	"fmt"
 	"github.com/faiq/minikick/models"
+	"gopkg.in/mgo.v2"
 )
 
-func List(name string) error {
-	project, err := models.FindProjectByName(name)
+func List(name string, db *mgo.Database) error {
+	project, err := models.FindProjectByName(name, db)
 	if err != nil {
 		return err
 	}
 
-	users, err := models.FindUsersForProject(project.Id)
+	users, err := models.FindUsersForProject(project.Id, db)
 	if err != nil {
 		return err
 	}

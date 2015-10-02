@@ -33,18 +33,12 @@ func NewProject(projectName string, targetAmount string) (Project, error) {
 	}
 }
 
-func (p Project) Save() error {
-	uri := "mongodb://localhost/"
-	sess, err := mgo.Dial(uri)
-	defer sess.Close()
-	if err != nil {
-		return err
-	}
-	c := sess.DB("minikick").C("projects")
+func (p Project) Save(db *mgo.Database) error {
+	c := db.C("projects")
 	if len(p.Id) == 0 {
 		p.Id = bson.NewObjectId()
 	}
-	_, err = c.Upsert(bson.M{"_id": p.Id}, p)
+	_, err := c.Upsert(bson.M{"_id": p.Id}, p)
 	if err != nil {
 		return err
 	}
@@ -87,32 +81,20 @@ func compareCards(card1 []int, card2 []int) bool {
 	return true
 }
 
-func FindProjectByName(projectName string) (Project, error) {
-	uri := "mongodb://localhost/"
-	sess, err := mgo.Dial(uri)
-	defer sess.Close()
-	if err != nil {
-		return Project{}, err
-	}
-	c := sess.DB("minikick").C("projects")
+func FindProjectByName(projectName string, db *mgo.Database) (Project, error) {
+	c := db.C("projects")
 	var result Project
-	err = c.Find(bson.M{"name": projectName}).One(&result)
+	err := c.Find(bson.M{"name": projectName}).One(&result)
 	if err == mgo.ErrNotFound {
 		return Project{}, errors.New("Looks like you're trying to back something that doesnt exist")
 	}
 	return result, nil
 }
 
-func FindProjectById(objID bson.ObjectId) (Project, error) {
-	uri := "mongodb://localhost/"
-	sess, err := mgo.Dial(uri)
-	defer sess.Close()
-	if err != nil {
-		return Project{}, err
-	}
-	c := sess.DB("minikick").C("projects")
+func FindProjectById(objID bson.ObjectId, db *mgo.Database) (Project, error) {
+	c := db.C("projects")
 	var result Project
-	err = c.Find(bson.M{"_id": objID}).One(&result)
+	err := c.Find(bson.M{"_id": objID}).One(&result)
 	if err == mgo.ErrNotFound {
 		return Project{}, errors.New("Looks like you're trying to find something that doesn't exist")
 	}

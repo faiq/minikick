@@ -3,10 +3,11 @@ package controllers
 import (
 	"errors"
 	"github.com/faiq/minikick/models"
+	"gopkg.in/mgo.v2"
 	"strconv"
 )
 
-func Back(givenName string, projectName string, card string, amount string) error {
+func Back(givenName string, projectName string, card string, amount string, db *mgo.Database) error {
 	if !models.ValidateName(givenName) {
 		return errors.New("Given name should be no shorter than 4 chars and no longer than 20")
 	}
@@ -21,7 +22,7 @@ func Back(givenName string, projectName string, card string, amount string) erro
 	if err != nil {
 		return err
 	}
-	result, err := models.FindProjectByName(projectName)
+	result, err := models.FindProjectByName(projectName, db)
 	if err != nil {
 		return err
 	}
@@ -32,7 +33,7 @@ func Back(givenName string, projectName string, card string, amount string) erro
 	if err != nil {
 		return err
 	}
-	User, err := models.FindUserByName(givenName)
+	User, err := models.FindUserByName(givenName, db)
 	if err != nil {
 		return err
 	}
@@ -40,11 +41,11 @@ func Back(givenName string, projectName string, card string, amount string) erro
 	if err != nil {
 		return err
 	}
-	err = User.Save()
+	err = User.Save(db)
 	if err != nil {
 		return err
 	}
-	err = result.Save()
+	err = result.Save(db)
 	if err != nil {
 		return err
 	}
