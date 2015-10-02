@@ -4,12 +4,32 @@ import (
 	"github.com/faiq/minikick/models"
 	"github.com/faiq/minikick/utils"
 	"github.com/stretchr/testify/assert"
+	"strconv"
 	"testing"
 )
 
 // check to see if backing a project works or not
 // we should check the databases with queries to see if the appropriate stuff is created or not
-//func TestBacking
+func TestBacking(t *testing.T) {
+	assert := assert.New(t)
+	sess, db := utils.MakeDB("minikick")
+	defer sess.Close()
+	proj, err := models.NewProject("testproject", "123.45") //set up a new project
+	err = proj.Save(db)
+	assert.Nil(err)
+	card := "4581237932741116"
+	amount := "123.32"
+	err = Back("faiq", "testproject", card, amount, db) //lets back this project
+	assert.Nil(err)
+	// Now lets make some queries to make sure that everything checks out by querying the tables
+	project, err := models.FindProjectByName("testproject", db)
+	assert.Nil(err)
+	assert.NotNil(project)                                 //make sure its there
+	assert.Contains(project.Cards, models.ParseCard(card)) // check to see if we saved the card
+	parsedAmount, _ := strconv.ParseFloat(amount, 64)
+	assert.Equal(project.AmountBacked, parsedAmount) //check to see if we backed it for that much cash
+	db.DropDatabase()                                // drop the database to work on the next test
+}
 
 // test to see if someone can reuse a used credit card
 // should error
