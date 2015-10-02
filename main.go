@@ -20,7 +20,7 @@ func main() {
 			Action: func(c *cli.Context) {
 				args := c.Args()
 				proj, err := models.NewProject(args[0], args[1])
-				db := utils.MakeDB("minikick")
+				_, db := utils.MakeDB("minikick")
 				err = proj.Save(db)
 				if err != nil {
 					panic(err)
@@ -33,7 +33,7 @@ func main() {
 			Aliases: []string{"b"},
 			Usage:   "Back a project! The arguments are name, project name, credit card number, and an amount.",
 			Action: func(c *cli.Context) {
-				db := utils.MakeDB("minikick")
+				_, db := utils.MakeDB("minikick")
 				args := c.Args()
 				err := controllers.Back(args[0], args[1], args[2], args[3], db)
 				if err != nil {
@@ -48,7 +48,7 @@ func main() {
 			Aliases: []string{"l"},
 			Usage:   "Display a project the backers and the amount they backed for a project!",
 			Action: func(c *cli.Context) {
-				db := utils.MakeDB("minikick")
+				_, db := utils.MakeDB("minikick")
 				args := c.Args()
 				err := controllers.List(args[0], db)
 				if err != nil {
@@ -61,7 +61,7 @@ func main() {
 			Aliases: []string{"br"},
 			Usage:   "Display a list of projects that a backer has backed and the amounts backed",
 			Action: func(c *cli.Context) {
-				db := utils.MakeDB("minikick")
+				_, db := utils.MakeDB("minikick")
 				err := controllers.Backer(c.Args().First(), db)
 				if err != nil {
 					fmt.Printf("%v", err)
